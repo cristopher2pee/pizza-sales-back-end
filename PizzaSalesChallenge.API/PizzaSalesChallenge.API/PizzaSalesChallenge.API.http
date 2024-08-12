@@ -1,0 +1,6 @@
+@PizzaSalesChallenge.API_HostAddress = http://localhost:5139
+
+GET {{PizzaSalesChallenge.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

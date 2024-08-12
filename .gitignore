@@ -225,3 +225,11 @@
 /PizzaSalesChallenge.API/PizzaSalesChallenge.API/bin/Debug/net8.0/runtimes/win-x64/native/Microsoft.Data.SqlClient.SNI.dll
 /PizzaSalesChallenge.API/PizzaSalesChallenge.API/bin/Debug/net8.0/runtimes/win-x86/native/Microsoft.Data.SqlClient.SNI.dll
 /PizzaSalesChallenge.API/.vs/PizzaSalesChallenge.API/config/applicationhost.config
+/PizzaSalesChallenge.API/PizzaSalesChallenge.Infrastructure/obj/PizzaSalesChallenge.Infrastructure.csproj.nuget.g.props
+/PizzaSalesChallenge.API/PizzaSalesChallenge.Infrastructure/obj/PizzaSalesChallenge.Infrastructure.csproj.nuget.g.targets
+/PizzaSalesChallenge.API/PizzaSalesChallenge.API/obj/PizzaSalesChallenge.API.csproj.nuget.g.props
+/PizzaSalesChallenge.API/PizzaSalesChallenge.API/obj/PizzaSalesChallenge.API.csproj.nuget.g.targets
+/PizzaSalesChallenge.API/PizzaSalesChallenge.Business/obj/PizzaSalesChallenge.Business.csproj.nuget.g.props
+/PizzaSalesChallenge.API/PizzaSalesChallenge.Business/obj/PizzaSalesChallenge.Business.csproj.nuget.g.targets
+/PizzaSalesChallenge.API/PizzaSalesChallenge.Core/obj/PizzaSalesChallenge.Core.csproj.nuget.g.props
+/PizzaSalesChallenge.API/PizzaSalesChallenge.Core/obj/PizzaSalesChallenge.Core.csproj.nuget.g.targets

@@ -1,7 +1,10 @@
 ﻿using CsvHelper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using PizzaSalesChallenge.Business.DTO.Filter;
 using PizzaSalesChallenge.Business.DTO.Mapper;
 using PizzaSalesChallenge.Business.Services.Interface;
+using PizzaSalesChallenge.Core.Constant;
 using PizzaSalesChallenge.Core.Entities;
 using PizzaSalesChallenge.Core.Enum;
 using PizzaSalesChallenge.Core.Model;
@@ -33,7 +36,7 @@ namespace PizzaSalesChallenge.Business.Services
             return pizza;
         }
 
-        public async Task<bool> ImportCSVFile(IFormFile file)
+        public async Task ImportCSVFile(IFormFile file)
         {
             try
             {
@@ -51,17 +54,21 @@ namespace PizzaSalesChallenge.Business.Services
 
                             if (processData != null)
                                 records.Add(processData);
+
+                            if(records.Count == Config.MaximumBatchRecord)
+                            {
+                                await SaveBatchAsync(records);
+                                records.Clear();
+                            }
                         }
 
                         if (records.Count > 0)
                         {
-                            await _unitOfWork._PizzaRepository.AddRageAsync(records.ToArray());
-                            return await _unitOfWork.SaveChangeAsync() > 0 ? true : false;
+                            await SaveBatchAsync(records);
                         }
                     }
                 }
 
-                return false;
             }
             catch (Exception ex)
             {
@@ -70,12 +77,15 @@ namespace PizzaSalesChallenge.Business.Services
 
         }
 
+        private async Task SaveBatchAsync(List<Pizza> records)
+        {
+            await _unitOfWork._PizzaRepository.AddRageAsync(records.ToArray());
+            await _unitOfWork.SaveChangeAsync();
+        }
+
         private async Task<Pizza?> ProcessPizzaRecord(PizzaCSV csv)
         {
             if (string.IsNullOrEmpty(csv.pizza_id)) return null;
-
-            var pizza = await GetPizzaByCode(csv.pizza_id);
-            if (pizza is not null) return null;
 
             var pizzaType = await _unitOfWork._PizzaTypeRepository.GetAsync(
                 filter: f => f.PizzaTypeCode.Equals(csv.pizza_type_id),
@@ -100,6 +110,77 @@ namespace PizzaSalesChallenge.Business.Services
                 Size = size,
                 Price = csv.price
             };
+        }
+
+        public async Task<Pizza?> UpdatePizza(Pizza param)
+        {
+            try
+            {
+                var toUpdate = await GetPizzaById(param.Id);
+                if(toUpdate is null) return null;
+
+                toUpdate.PizzaCode = param.PizzaCode;
+                toUpdate.PizzaTypeId = param.PizzaTypeId;
+                toUpdate.Price = param.Price;
+                toUpdate.Size = param.Size;
+
+                _unitOfWork._PizzaRepository.Update(param);
+                return await _unitOfWork.SaveChangeAsync() > 0 ? toUpdate : null;
+            }
+            catch(Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
+        }
+
+        public async Task<Pizza?> CreatePizza(Pizza param)
+        {
+            try
+            {
+                var res = await _unitOfWork._PizzaRepository.AddAsync(param);
+                return await _unitOfWork.SaveChangeAsync() > 0 ? res : null;
+            }
+            catch(Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
+
+          
+        }
+
+        public async Task<bool> DeletePizza(Guid id)
+        {
+            var toDelete = await GetPizzaById(id);
+            if (toDelete is null) return false;
+
+            _unitOfWork._PizzaRepository.Delete(toDelete);
+
+            return await _unitOfWork.SaveChangeAsync() > 0 ? true : false;
+        }
+
+        public async Task<Pizza?> GetPizzaById(Guid id)
+        {
+            var result = await _unitOfWork._PizzaRepository.GetAsync(
+                filter: f => f.Id.Equals(id),
+                track: false,
+                query => query.Include(f=>f.PizzaType)
+                );
+
+            return result;
+            
+        }
+
+        public async Task<(IEnumerable<Pizza> data, int totalRow, int TotalRowPage)> GetAll(BaseFilter filter)
+        {
+            var res = await _unitOfWork._PizzaRepository.GetAllAsync(
+                filter: filter.search != null ? f => f.PizzaCode.Contains(filter.search) : null,
+                orderBy : f=>f.OrderBy(f=>f.PizzaCode),
+                pageNumber : filter.pageNumber,
+                pageSize : filter.pageSize,
+                query => query.Include(f=>f.PizzaType)
+                );
+
+            return (res.Item1, res.TotalCount, res.pageCount);
         }
     }
 }

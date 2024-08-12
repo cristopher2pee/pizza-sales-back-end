@@ -17,9 +17,4 @@
     <ProjectReference Include="..\PizzaSalesChallenge.Infrastructure\PizzaSalesChallenge.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DTO\Response\" />
-    <Folder Include="DTO\Request\" />
-  </ItemGroup>
-
 </Project>

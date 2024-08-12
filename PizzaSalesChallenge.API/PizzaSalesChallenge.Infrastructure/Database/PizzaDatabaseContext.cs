@@ -21,16 +21,11 @@ namespace PizzaSalesChallenge.Infrastructure.Database
         public DbSet<PizzaType> PizzaType { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
-            //modelBuilder.Entity<Person>()
-            //    .HasOne(p => p.User)
-            //    .WithOne(p => p.Person)
-            //    .OnDelete(DeleteBehavior.Cascade);
-
-            //modelBuilder.Entity<Person>()
-            //.HasMany(f => f.Address)
-            //.WithOne(f => f.Person)
-            //.OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Order>()
+                .HasMany(od => od.OrderDetails)
+                .WithOne(o => o.Order)
+                .OnDelete(DeleteBehavior.Cascade);
+                
         }
     }
 }

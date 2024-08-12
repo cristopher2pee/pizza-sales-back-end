@@ -24,6 +24,7 @@ namespace PizzaSalesChallenge.Business.Extension
             service.AddScoped<IPizzaService, PizzaServices>();
             service.AddScoped<IPizzaTypeService, PizzaTypeService>();
             service.AddScoped<IOrderService, OrderService>();
+            service.AddScoped<IOrderDetailsService, OrderDetailsService>();
 
             return service;
         }

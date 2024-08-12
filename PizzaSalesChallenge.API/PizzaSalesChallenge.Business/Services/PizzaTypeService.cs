@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using CsvHelper;
 using PizzaSalesChallenge.Business.DTO.Mapper;
 using PizzaSalesChallenge.Core.Entities;
+using PizzaSalesChallenge.Core.Constant;
+using PizzaSalesChallenge.Business.DTO.Filter;
 
 namespace PizzaSalesChallenge.Business.Services
 {
@@ -22,7 +24,7 @@ namespace PizzaSalesChallenge.Business.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<bool> ImportCSVFile(IFormFile file)
+        public async Task ImportCSVFile(IFormFile file)
         {
             try
             {
@@ -39,27 +41,38 @@ namespace PizzaSalesChallenge.Business.Services
 
                             var processData = item.ConvertCSVRecordToPizzaTypeEntity();
 
-                            if (await GetPizzaTypeByCode(processData.PizzaTypeCode) is null)
-                                records.Add(processData);
+                            records.Add(processData);
+
+                            if (records.Count == Config.MaximumBatchRecord)
+                            {
+                                await SaveBatchAsync(records);
+                                records.Clear();
+                            }
+
                         }
 
                         if (records.Count > 0)
                         {
-                            await _unitOfWork._PizzaTypeRepository.AddRageAsync(records.ToArray());
-                            return await _unitOfWork.SaveChangeAsync() > 0 ? true : false;
+                            await SaveBatchAsync(records);
 
                         }
                     }
                 }
 
-                return false;
+
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception("Error in importing csv file.", ex);
             }
 
 
+        }
+
+        private async Task SaveBatchAsync(List<PizzaType> records)
+        {
+            await _unitOfWork._PizzaTypeRepository.AddRageAsync(records.ToArray());
+            await _unitOfWork.SaveChangeAsync();
         }
 
         public async Task<PizzaType?> GetPizzaTypeByCode(string code)
@@ -73,21 +86,86 @@ namespace PizzaSalesChallenge.Business.Services
         }
         public async Task<PizzaType?> UpdatePizzaType(PizzaType pizzaType)
         {
-            var toUpdate = await _unitOfWork._PizzaTypeRepository.GetAsync(
-                filter: f => f.Id.Equals(pizzaType.Id),
-                track: false
-                );
+            try
+            {
+                var toUpdate = await _unitOfWork._PizzaTypeRepository.GetAsync(
+                    filter: f => f.Id.Equals(pizzaType.Id),
+                    track: false
+                    );
 
-            if (toUpdate is null) return null;
+                if (toUpdate is null) return null;
 
-            toUpdate.Ingredients = pizzaType.Ingredients;
-            toUpdate.Category = pizzaType.Category;
-            toUpdate.Name = pizzaType.Name;
+                toUpdate.Ingredients = pizzaType.Ingredients;
+                toUpdate.Category = pizzaType.Category;
+                toUpdate.Name = pizzaType.Name;
 
-            _unitOfWork._PizzaTypeRepository.Update(toUpdate);
-            return await _unitOfWork.SaveChangeAsync() > 0 ? toUpdate : null;
+                _unitOfWork._PizzaTypeRepository.Update(toUpdate);
+                return await _unitOfWork.SaveChangeAsync() > 0 ? toUpdate : null;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error in updating data", ex);
+            }
+
+
         }
 
+        public async Task<PizzaType?> CreatePizzaType(PizzaType pizzaType)
+        {
+            try
+            {
+                var result = await _unitOfWork._PizzaTypeRepository.AddAsync(pizzaType);
+                return await _unitOfWork.SaveChangeAsync() > 0 ? result : null;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error in creating pizza type.", ex);
+            }
+        }
 
+        public async Task<bool> DeletePizzaType(Guid id)
+        {
+            try
+            {
+                var toDelete = await _unitOfWork._PizzaTypeRepository.GetAsync(
+                    filter: f => f.Id.Equals(id),
+                    track: false
+                    );
+
+                if (toDelete is null) return false;
+
+                _unitOfWork._PizzaTypeRepository.Delete(toDelete);
+                return await _unitOfWork.SaveChangeAsync() > 0 ? true : false;
+                
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error in deleting pizza type.", ex);
+            }
+        }
+
+        public async Task<PizzaType?> GetPizzaTypeById(Guid id)
+        {
+            var result =  await _unitOfWork._PizzaTypeRepository.GetAsync(
+                    filter: f => f.Id.Equals(id),
+                    track: false
+                    );
+
+            return result;
+        }
+
+        public async Task<(IEnumerable<PizzaType> data, int totalRow, int TotalRowPage)> GetAll(BaseFilter filter)
+        {
+            var list = await _unitOfWork._PizzaTypeRepository.GetAllAsync(
+                filter : filter.search != null ? f=>f.PizzaTypeCode.Contains(filter.search) || 
+                    f.Name.Contains(filter.search) : null,
+
+                orderBy : f=>f.OrderBy(f=>f.Name),
+                pageNumber : filter.pageNumber,
+                pageSize : filter.pageSize
+                );
+
+            return (list.Item1, list.TotalCount, list.pageCount);
+        }
     }
 }

@@ -6,63 +6,58 @@ using PizzaSalesChallenge.Business.DTO.Request;
 using PizzaSalesChallenge.Business.DTO.Response;
 using PizzaSalesChallenge.Business.Services;
 using PizzaSalesChallenge.Business.Services.Interface;
-using PizzaSalesChallenge.Business.Utilities;
 
 namespace PizzaSalesChallenge.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PizzaController : ControllerBase
+    public class OrderDetailController : ControllerBase
     {
-
-        private readonly IPizzaService _pizzaService;
-        public PizzaController(IPizzaService pizzaService)
+        private readonly IOrderDetailsService _orderDetailService;
+        public OrderDetailController(IOrderDetailsService orderDetailsService)
         {
-            _pizzaService = pizzaService;
+            _orderDetailService = orderDetailsService;
         }
-
 
         [HttpGet]
         [ProducesResponseType<PageResponse>(StatusCodes.Status200OK)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-
-        public async Task<IActionResult> GetAll([FromQuery] BaseFilter filter)
+        public async Task<IActionResult> GetAll([FromQuery]BaseFilter filter)
         {
-            var result = await _pizzaService.GetAll(filter);
+            var result = await _orderDetailService.GetAll(filter);
 
             return Ok(new PageResponse(result.data.ConvertToResponseList(),
-                result.totalRow, result.TotalRowPage));
+                 result.totalRow, result.TotalRowPage));
         }
 
         [HttpGet("{id}")]
-        [ProducesResponseType<PizzaResponse>(StatusCodes.Status200OK)]
+        [ProducesResponseType<OrderDetailsResponse>(StatusCodes.Status200OK)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
-            var result = await _pizzaService.GetPizzaById(id);
+            var result = await _orderDetailService.GetOrderDetailsById(id);
             if (result is null) return NotFound();
 
             return Ok(result.ConvertToResponse());
         }
 
-
         [HttpPost]
-        [ProducesResponseType<PizzaResponse>(StatusCodes.Status200OK)]
+        [ProducesResponseType<OrderDetailsResponse>(StatusCodes.Status200OK)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> AddPizza([FromBody] PizzaRequest req)
+        public async Task<IActionResult> AddOrderDetails([FromBody] OrderDetailsRequest req)
         {
-            var result = await _pizzaService.CreatePizza(req.ConvertToEntity(true));
+            var result = await _orderDetailService.CreateOrderDetails(req.ConvertToEntity(true));
             if (result is null) return BadRequest();
 
             return Ok(result.ConvertToResponse());
         }
 
         [HttpPut]
-        [ProducesResponseType<PizzaResponse>(StatusCodes.Status200OK)]
+        [ProducesResponseType<OrderDetailsResponse>(StatusCodes.Status200OK)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdatePizza([FromBody] PizzaRequest req)
+        public async Task<IActionResult> UpdateOrderDetails([FromBody] OrderDetailsRequest req)
         {
-            var result = await _pizzaService.UpdatePizza(req.ConvertToEntity(false));
+            var result = await _orderDetailService.UpdateOrderDetails(req.ConvertToEntity());
             if (result is null) return BadRequest();
 
             return Ok(result.ConvertToResponse());
@@ -73,10 +68,9 @@ namespace PizzaSalesChallenge.API.Controllers
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DeleteById([FromRoute] Guid id)
         {
-            var result = await _pizzaService.DeletePizza(id);
+            var result = await _orderDetailService.DeleteOrderDetails(id);
             return result ? Ok() : BadRequest();
         }
 
     }
-
 }

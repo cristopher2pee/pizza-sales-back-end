@@ -49,9 +49,17 @@ namespace PizzaSalesChallenge.Infrastructure.DataAccess
         {
             IQueryable<T> query = _dbContext.Set<T>();
             int totalCount = query.Count();
+            int pageCount = 0;
 
             if (filter != null)
+            {
                 query = query.Where(filter);
+                pageCount = query.Count();
+            }
+            else
+                pageCount = pageSize;
+
+
 
             if (includes != null)
             {
@@ -59,7 +67,7 @@ namespace PizzaSalesChallenge.Infrastructure.DataAccess
                     query = include(query);
             }
 
-            int pageCount = query.Count();
+
 
             if (orderBy != null)
                 query = orderBy(query);

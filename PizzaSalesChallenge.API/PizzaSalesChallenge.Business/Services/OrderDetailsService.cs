@@ -53,7 +53,7 @@ namespace PizzaSalesChallenge.Business.Services
                             if (processData is not null)
                                 records.Add(processData);
 
-                            if (records.Count == 500)
+                            if (records.Count == Config.MaximumBatchRecord)
                             {
                                 await SaveBatchAsync(records);
                                 records.Clear();

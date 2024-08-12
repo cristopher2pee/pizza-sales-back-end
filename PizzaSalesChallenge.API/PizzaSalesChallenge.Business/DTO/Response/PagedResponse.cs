@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace PizzaSalesChallenge.Business.DTO.Response
 {
-    public record struct PageResponse(object data, int total, int totalPage);
+    public record struct PageResponse(object data, int totalRows, int sizePage);
 }

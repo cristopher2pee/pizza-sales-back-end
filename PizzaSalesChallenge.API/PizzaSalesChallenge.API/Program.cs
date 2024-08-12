@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PizzaSalesChallenge.Infrastructure.Database;
+using PizzaSalesChallenge.Business.Extension;
+using PizzaSalesChallenge.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<PizzaDatabaseContext>(
     options => options.UseSqlServer(builder.Configuration["Data:ConnectionString:DefaultConnection"]));
 
+builder.Services.PizzaSalesChallengeBusinessExtension();
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -22,6 +27,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<CustomHandlerException>();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

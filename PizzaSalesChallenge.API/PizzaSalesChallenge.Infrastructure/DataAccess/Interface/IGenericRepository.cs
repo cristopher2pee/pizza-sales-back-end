@@ -12,6 +12,8 @@ namespace PizzaSalesChallenge.Infrastructure.DataAccess
     public interface IGenericRepository<T> where T : class
     {
         Task<T> AddAsync(T entity);
+
+        Task AddRageAsync(T[] entities);
         T Update(T entity);
         T Delete(T entity);
         void DeleteRange(T[] entities);

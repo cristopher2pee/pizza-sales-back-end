@@ -25,6 +25,11 @@ namespace PizzaSalesChallenge.Infrastructure.DataAccess
             return res.Entity;
         }
 
+        public async Task AddRageAsync(T[] entities)
+        {
+            await _dbContext.Set<T>().AddRangeAsync(entities);
+        }
+
         public T Delete(T entity)
         {
             var res = _dbContext.Set<T>().Remove(entity);
